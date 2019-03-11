@@ -94,6 +94,9 @@ class Channel : boost::noncopyable
  private:
   static string eventsToString(int fd, int ev);
 
+	// 把自己注册到loop中，loop检测到发生自己关注的事件后，会设置好revents，然后调
+	// 用我的handleEvent函数，在这个函数中， 我会根据revent来调用对应的call back函
+	// 数
   void update();
   void handleEventWithGuard(Timestamp receiveTime);
 

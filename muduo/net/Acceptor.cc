@@ -23,6 +23,21 @@
 
 using namespace muduo;
 using namespace muduo::net;
+// Acceptor 主要包含一个 Socket 和一个Channel
+// Socket 和Channel都绑定到同一个listen fd上
+// 当调用Acceptor.listen时，非阻塞，并且将connection事件通过channal注册到loop中
+// 此处的loop为主线程loop，（主线程loop主要就用来接收listen fd的connection事件）
+//
+// Acceptor 因为包含了一个channel， 所以可以通过定义一个handleRead callback函数
+// 来接手channel的可read回调函数
+// 并且在回调函数中，accept新连接，然后把新链接的处理权交给另一个callback函数：
+// newConnectionCallback，谁设置这个callback函数，自然是拥有Accepter的TcpServer
+// 
+// 所以Channel，Accepter，TcpServer这三者通过callback函数串在一起
+// Accepter 通过把自己定义的handleRead函数设置给自己的Channel来接管channel的可读
+// 事件处理
+// TcpServer通过把自己定义的NewConnection函数设置给accepter来决定Acceptor的
+// HandleRead的主要操作：接收到新链接之后的处理
 
 Acceptor::Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reuseport)
   : loop_(loop),
